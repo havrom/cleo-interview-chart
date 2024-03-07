@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { Candle } from "../types/candle";
+import { fetcher } from "../utils/fetcher";
+import { getCandlesFromMarketData } from "../utils/getCandlesFromMarketData";
 
 // DO NOT MODIFY THIS TYPE
 type CandleLoaderParams =
@@ -31,8 +34,39 @@ type CandleLoaderHook =
 
 export function useCandleLoader({
   enabled,
+  symbol,
 }: CandleLoaderParams): CandleLoaderHook {
-  // Remove all code below this line and replace it with your own implementation
+  const [candleData, setCandleData] = useState<Candle[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [dataLoading, setDataLoading] = useState(false);
+
+  useEffect(() => {
+    if (!symbol) return;
+
+    // reset fetching state
+    setErrorMessage("");
+    setDataLoading(true);
+
+    // fetch data from public json by market name
+    fetcher<(number | null)[]>(`/candles/${symbol}.json`)
+      .then((data) => {
+        // transform market data and set candles array to state
+        setCandleData(getCandlesFromMarketData(data));
+      })
+      .catch((error) => {
+        // set errorMessage if error occurs while fetching 
+        if (typeof error === "string") {
+          setErrorMessage(error);
+        } else if (error instanceof Error) {
+          setErrorMessage(error.message);
+        } else {
+          setErrorMessage("An error occured");
+        }
+      })
+      .finally(() => {
+        setDataLoading(false);
+      });
+  }, [symbol]);
 
   if (!enabled) {
     return {
@@ -41,31 +75,24 @@ export function useCandleLoader({
       error: null,
     };
   }
+  if (errorMessage) {
+    return {
+      status: "error",
+      data: null,
+      error: errorMessage,
+    };
+  }
+  if (dataLoading) {
+    return {
+      status: "loading",
+      data: null,
+      error: null,
+    }
+  }
 
-  const candleCount = 250;
-  const periods = 4;
   return {
     status: "success",
-    data: Array.from({ length: candleCount }, (_, i) => {
-      const candleRatio = 1 / 10;
-
-      const radians = (i / candleCount) * Math.PI * 2 * periods;
-      const indexPrice = Math.cos(radians);
-      const indexSlope = -Math.sin(radians);
-      const priceChange = candleRatio * Math.sign(indexSlope);
-
-      const open = indexPrice - priceChange;
-      const close = indexPrice + priceChange;
-      const high = Math.max(open, close) + candleRatio;
-      const low = Math.min(open, close) - candleRatio;
-
-      return {
-        open,
-        high,
-        low,
-        close,
-      };
-    }),
+    data: candleData,
     error: null,
   };
 }
