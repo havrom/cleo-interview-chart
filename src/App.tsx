@@ -4,10 +4,13 @@ import AssetSelect from "./components/AssetSelect";
 import CandleInfo from "./components/CandleInfo";
 import Chart from "./components/Chart";
 import { useCandleLoader } from "./hooks/useCandleLoader";
+import { Candle } from "types/candle";
 
 function App() {
   const url = new URL(window.location.href);
   const symbol = url.searchParams.get("symbol");
+  // candle object with price details or null if not hovered on candle
+  const [selectedCandle, setSelectedCandle] = useState<Candle | null>(null);
 
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight,
@@ -64,9 +67,13 @@ function App() {
             width={dimensions.width}
             height={dimensions.height}
             candles={candleLoader.data}
+            // callback to retrieve candle data from Chart component
+            handleCandleSelect={(candle) => {
+              setSelectedCandle(candle);
+            }}
           />
           <div className={classes["candle-info-wrapper"]}>
-            <CandleInfo candle={null} />
+            <CandleInfo candle={selectedCandle} />
           </div>
         </>
       )}
