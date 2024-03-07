@@ -1,6 +1,6 @@
 
-Name of Assignee:
+Name of Assignee: Roman Havrylenko
 
-Approximate time taken to complete the assignment:
+Approximate time taken to complete the assignment: 2 hours
 
-One thing that I would suggest to improve about this assignment:
+One thing that I would suggest to improve about this assignment: In my opinion would be great to have a requirement regarding hovering on spaces between candles - should it trigger resetting selected candle or gap should be divided equally between left and right candles so that candle info will not reset each time. I've chosen first path in this assignment that makes more sense when zooming or increasing gap between candles.
